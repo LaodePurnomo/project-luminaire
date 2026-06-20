@@ -24,12 +24,6 @@ class ChatController extends Controller
         'tidak mau hidup', 'ga mau hidup', 'gak mau hidup',
         'menyakiti diri', 'nyakitin diri', 'self harm',
         'overdosis', 'gantung diri', 'lompat',
-
-        // Kekerasan
-        'membunuh', 'mau bunuh', 'pengen bunuh', 'ingin bunuh',
-
-        // Kata senonoh
-        'kontol', 'memek', 'ngentot', 'anjing', 'bangsat',
     ];
 
     private function checkFlag(string $message): array

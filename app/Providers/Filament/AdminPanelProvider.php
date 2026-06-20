@@ -30,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Zinc,
             ])
             ->brandName('luminaire()')
+            ->favicon("data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☕</text></svg>")
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
