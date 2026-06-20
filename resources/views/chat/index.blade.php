@@ -91,6 +91,9 @@
 
 <nav class="nav-bar">
   <span class="greeting">Hei, {{ auth()->user()->username ?? auth()->user()->name }}! 👋</span>
+    @if(auth()->user()->is_admin)
+      <a href="/admin" class="nav-link primary">Admin Dashboard</a>
+  @endif
   <a href="{{ route('profile.edit') }}" class="nav-link">Profil</a>
   <form method="POST" action="{{ route('logout') }}" style="display:inline;">
     @csrf

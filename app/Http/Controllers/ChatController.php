@@ -9,60 +9,95 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
+// gotta split this stuff soon for ease of access and readability, what even is this LOL
+// And this thing IS NOT readable with the human eyes.
+
 class ChatController extends Controller
 {
+    // ============================================================
+    // KATA KUNCI YANG AKAN DI-FLAG
+    // Tambah kata baru di array ini sesuai kebutuhan
+    // ============================================================
+    private array $flaggedKeywords = [
+        // Self-harm & krisis
+        'bunuh diri', 'mau mati', 'ingin mati', 'pengen mati',
+        'tidak mau hidup', 'ga mau hidup', 'gak mau hidup',
+        'menyakiti diri', 'nyakitin diri', 'self harm',
+        'overdosis', 'gantung diri', 'lompat',
+
+        // Kekerasan
+        'membunuh', 'mau bunuh', 'pengen bunuh', 'ingin bunuh',
+
+        // Kata senonoh
+        'kontol', 'memek', 'ngentot', 'anjing', 'bangsat',
+    ];
+
+    private function checkFlag(string $message): array
+    {
+        $messageLower = strtolower($message);
+        foreach ($this->flaggedKeywords as $keyword) {
+            if (str_contains($messageLower, $keyword)) {
+                return [true, $keyword];
+            }
+        }
+        return [false, null];
+    }
+
+    // ============================================================
+
     public function index()
     {
         return view('chat.index');
     }
 
-public function kakAra()
-{
-    $history = ChatHistory::where('user_id', Auth::id())
-        ->where('character', 'kak-ara')
-        ->orderBy('created_at', 'asc')
-        ->get();
-
-    if ($history->isEmpty()) {
-        ChatHistory::create([
-            'user_id'   => Auth::id(),
-            'character' => 'kak-ara',
-            'role'      => 'assistant',
-            'content'   => 'Hei, aku Kak Ara! Senang banget kamu mau mampir ke sini. Cerita dulu yuk — ada apa yang lagi kamu rasain hari ini?',
-        ]);
-
+    public function kakAra()
+    {
         $history = ChatHistory::where('user_id', Auth::id())
             ->where('character', 'kak-ara')
             ->orderBy('created_at', 'asc')
             ->get();
+
+        if ($history->isEmpty()) {
+            ChatHistory::create([
+                'user_id'   => Auth::id(),
+                'character' => 'kak-ara',
+                'role'      => 'assistant',
+                'content'   => 'Hei, aku Kak Ara! Senang banget kamu mau mampir ke sini. Cerita dulu yuk — ada apa yang lagi kamu rasain hari ini?',
+            ]);
+
+            $history = ChatHistory::where('user_id', Auth::id())
+                ->where('character', 'kak-ara')
+                ->orderBy('created_at', 'asc')
+                ->get();
+        }
+
+        return view('chat.kak-ara', compact('history'));
     }
 
-    return view('chat.kak-ara', compact('history'));
-}
-
-public function kakReza()
-{
-    $history = ChatHistory::where('user_id', Auth::id())
-        ->where('character', 'kak-reza')
-        ->orderBy('created_at', 'asc')
-        ->get();
-
-    if ($history->isEmpty()) {
-        ChatHistory::create([
-            'user_id'   => Auth::id(),
-            'character' => 'kak-reza',
-            'role'      => 'assistant',
-            'content'   => 'Hei! Aku Kak Reza. Yuk ngobrol — cerita apa yang lagi ada di pikiranmu sekarang? Kita coba lihat bareng-bareng.',
-        ]);
-
+    public function kakReza()
+    {
         $history = ChatHistory::where('user_id', Auth::id())
             ->where('character', 'kak-reza')
             ->orderBy('created_at', 'asc')
             ->get();
+
+        if ($history->isEmpty()) {
+            ChatHistory::create([
+                'user_id'   => Auth::id(),
+                'character' => 'kak-reza',
+                'role'      => 'assistant',
+                'content'   => 'Hei! Aku Kak Reza. Yuk ngobrol — cerita apa yang lagi ada di pikiranmu sekarang? Kita coba lihat bareng-bareng.',
+            ]);
+
+            $history = ChatHistory::where('user_id', Auth::id())
+                ->where('character', 'kak-reza')
+                ->orderBy('created_at', 'asc')
+                ->get();
+        }
+
+        return view('chat.kak-reza', compact('history'));
     }
 
-    return view('chat.kak-reza', compact('history'));
-}
     public function sendAra(Request $request)
     {
         return $this->handleSend($request, 'kak-ara');
@@ -87,17 +122,22 @@ public function kakReza()
     {
         $request->validate(['message' => 'required|string']);
 
-        $user = Auth::user();
-        $gender = $user->gender ?? 'laki-laki';
-        $name = $user->username ?? $user->name;
+        $user    = Auth::user();
+        $gender  = $user->gender ?? 'laki-laki';
+        $name    = $user->username ?? $user->name;
         $message = $request->message;
+
+        // Cek flag
+        [$isFlagged, $flagReason] = $this->checkFlag($message);
 
         // Simpan pesan user ke database
         ChatHistory::create([
-            'user_id'   => $user->id,
-            'character' => $character,
-            'role'      => 'user',
-            'content'   => $message,
+            'user_id'     => $user->id,
+            'character'   => $character,
+            'role'        => 'user',
+            'content'     => $message,
+            'is_flagged'  => $isFlagged,
+            'flag_reason' => $flagReason,
         ]);
 
         // Ambil history untuk dikirim ke AI
@@ -107,9 +147,8 @@ public function kakReza()
             ->get()
             ->map(fn($h) => ['role' => $h->role, 'content' => $h->content])
             ->toArray();
-        
-            $name = $user->username ?? $user->name;
-            $systemPrompt = $this->getSystemPrompt($character, $name, $gender);
+
+        $systemPrompt = $this->getSystemPrompt($character, $name, $gender);
 
         // Kirim ke Groq
         $response = Http::withHeaders([
@@ -144,14 +183,12 @@ public function kakReza()
             ->where('character', $character)
             ->delete();
 
-        // Tentukan greeting berdasarkan karakter
         $greeting = match($character) {
             'kak-ara'  => 'Hei, aku Kak Ara! Senang banget kamu mau mampir ke sini. Cerita dulu yuk — ada apa yang lagi kamu rasain hari ini?',
             'kak-reza' => 'Hei! Aku Kak Reza. Yuk ngobrol — cerita apa yang lagi ada di pikiranmu sekarang? Kita coba lihat bareng-bareng.',
             default    => 'Hei! Ada yang mau kamu ceritain?',
         };
 
-        // Simpan greeting ke database
         ChatHistory::create([
             'user_id'   => Auth::id(),
             'character' => $character,
@@ -160,7 +197,7 @@ public function kakReza()
         ]);
 
         return response()->json([
-            'status'  => 'reset',
+            'status'   => 'reset',
             'greeting' => $greeting,
         ]);
     }
@@ -183,8 +220,9 @@ Kepribadian: bantu breakdown masalah, berikan perspektif baru, dorong langkah ko
 Batasan: jangan diagnosis, jika ada indikasi krisis sarankan hubungi 119 ext 8.
 Jawab maksimal 3-4 kalimat, singkat dan natural.";
     }
-    
-    public function custom() {
+
+    public function custom()
+    {
         $character = CustomCharacter::where('user_id', Auth::id())->first();
 
         if (!$character) {
@@ -197,7 +235,7 @@ Jawab maksimal 3-4 kalimat, singkat dan natural.";
             ->get();
 
         $greeting = $character->first_message
-        ?? 'Hei! Aku ' . $character->name . '. Ada yang mau kamu ceritain hari ini? 😊';
+            ?? 'Hei! Aku ' . $character->name . '. Ada yang mau kamu ceritain hari ini? 😊';
 
         if ($history->isEmpty()) {
             ChatHistory::create([
@@ -212,31 +250,30 @@ Jawab maksimal 3-4 kalimat, singkat dan natural.";
                 ->orderBy('created_at', 'asc')
                 ->get();
         }
+
         return view('chat.custom', compact('character', 'history'));
     }
 
     public function createCharacter(Request $request)
     {
         $character = CustomCharacter::where('user_id', Auth::id())->first();
-        
-        // Kalau sudah punya karakter tapi bukan dari tombol Edit
+
         if ($character && !$request->has('edit')) {
             return redirect()->route('chat.custom');
         }
-        
+
         return view('chat.create-character', compact('character'));
     }
 
     public function storeCharacter(Request $request)
     {
         $request->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'personality' => ['required', 'string'],
-            'avatar'      => ['nullable', 'image', 'max:2048'],
+            'name'          => ['required', 'string', 'max:255'],
+            'personality'   => ['required', 'string'],
+            'avatar'        => ['nullable', 'image', 'max:2048'],
             'first_message' => ['nullable', 'string'],
         ]);
 
-        // Kalau sudah punya karakter, redirect ke edit
         $existing = CustomCharacter::where('user_id', Auth::id())->first();
         if ($existing) {
             return redirect()->route('chat.create-character')
@@ -249,10 +286,10 @@ Jawab maksimal 3-4 kalimat, singkat dan natural.";
         }
 
         CustomCharacter::create([
-            'user_id'     => Auth::id(),
-            'name'        => $request->name,
-            'personality' => $request->personality,
-            'avatar'      => $avatarPath,
+            'user_id'       => Auth::id(),
+            'name'          => $request->name,
+            'personality'   => $request->personality,
+            'avatar'        => $avatarPath,
             'first_message' => $request->first_message,
         ]);
 
@@ -264,9 +301,9 @@ Jawab maksimal 3-4 kalimat, singkat dan natural.";
         $character = CustomCharacter::where('user_id', Auth::id())->firstOrFail();
 
         $request->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'personality' => ['required', 'string'],
-            'avatar'      => ['nullable', 'image', 'max:2048'],
+            'name'          => ['required', 'string', 'max:255'],
+            'personality'   => ['required', 'string'],
+            'avatar'        => ['nullable', 'image', 'max:2048'],
             'first_message' => ['nullable', 'string'],
         ]);
 
@@ -277,13 +314,13 @@ Jawab maksimal 3-4 kalimat, singkat dan natural.";
         }
 
         $character->update([
-            'name'        => $request->name,
-            'personality' => $request->personality,
-            'avatar'      => $avatarPath,
-            'first_message' => $request->first_message, 
+            'name'          => $request->name,
+            'personality'   => $request->personality,
+            'avatar'        => $avatarPath,
+            'first_message' => $request->first_message,
         ]);
 
-    return redirect()->route('chat.custom');
+        return redirect()->route('chat.custom');
     }
 
     public function deleteCharacter()
@@ -311,11 +348,16 @@ Jawab maksimal 3-4 kalimat, singkat dan natural.";
         $character = CustomCharacter::where('user_id', $user->id)->firstOrFail();
         $message   = $request->message;
 
+        // Cek flag
+        [$isFlagged, $flagReason] = $this->checkFlag($message);
+
         ChatHistory::create([
-            'user_id'   => $user->id,
-            'character' => 'custom',
-            'role'      => 'user',
-            'content'   => $message,
+            'user_id'     => $user->id,
+            'character'   => 'custom',
+            'role'        => 'user',
+            'content'     => $message,
+            'is_flagged'  => $isFlagged,
+            'flag_reason' => $flagReason,
         ]);
 
         $history = ChatHistory::where('user_id', $user->id)
@@ -363,7 +405,6 @@ Jawab maksimal 3-4 kalimat, singkat dan natural.";
         $greeting = $character->first_message
             ?? 'Hei! Aku ' . $character->name . '. Ada yang mau kamu ceritain hari ini? 😊';
 
-        // Simpan greeting ke database
         ChatHistory::create([
             'user_id'   => Auth::id(),
             'character' => 'custom',
@@ -373,7 +414,7 @@ Jawab maksimal 3-4 kalimat, singkat dan natural.";
 
         return response()->json([
             'status'   => 'reset',
-            'greeting' => $greeting
+            'greeting' => $greeting,
         ]);
     }
 }

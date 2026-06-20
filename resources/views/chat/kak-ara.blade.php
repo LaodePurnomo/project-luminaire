@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="{{ asset('css/chat.css') }}">
 </head>
 <body>
+
 <!-- ini ada di views/components/sidebar.blade.php ya bang -->
 <x-sidebar active="ara" />
 

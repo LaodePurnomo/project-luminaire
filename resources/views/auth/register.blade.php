@@ -1,78 +1,67 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Luminaire — Daftar</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+</head>
+<body>
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
-        </div>
+<div class="logo">☕ luminaire.</div>
+<p class="tagline">Buat akun Luminaire kamu.</p>
 
-        <!-- Username -->
-        <div>
-            <x-input-label for="username" :value="__('Username')" />
-            <x-text-input id="username"
-                class="block mt-1 w-full"
-                type="text"
-                name="username"
-                :value="old('username')"
-                required
-                autofocus
-                autocomplete="username" />
-            <x-input-error :messages="$errors->get('username')" class="mt-2" />
-        </div>
+<div class="card">
+  <div class="card-title">Daftar</div>
 
-        <!-- Gender -->
-        <div>
-            <x-input-label for="gender" :value="__('Kamu identifikasi sebagai?')" />
-            <select id="gender" name="gender"
-                class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                <option value="" disabled selected>-- Pilih --</option>
-                <option value="laki-laki"  {{ old('gender') == 'laki-laki'  ? 'selected' : '' }}>🙋‍♂️ Laki-laki</option>
-                <option value="perempuan"  {{ old('gender') == 'perempuan'  ? 'selected' : '' }}>🙋‍♀️ Perempuan</option>
-            </select>
-            <x-input-error :messages="$errors->get('gender')" class="mt-2" />
-        </div>
+  <form method="POST" action="{{ route('register') }}">
+    @csrf
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+    <div class="form-group">
+      <label for="name">Nickname</label>
+      <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" />
+      @error('name') <div class="error">{{ $message }}</div> @enderror
+    </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input id="username" type="text" name="username" value="{{ old('username') }}" required autocomplete="username" />
+      @error('username') <div class="error">{{ $message }}</div> @enderror
+    </div>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
+    <div class="form-group">
+      <label for="gender">Kamu identifikasi sebagai?</label>
+      <select id="gender" name="gender">
+        <option value="" disabled selected>- Pilih -</option>
+        <option value="laki-laki" {{ old('gender') == 'laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+        <option value="perempuan" {{ old('gender') == 'perempuan' ? 'selected' : '' }}>Perempuan</option>
+      </select>
+      @error('gender') <div class="error">{{ $message }}</div> @enderror
+    </div>
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email" />
+      @error('email') <div class="error">{{ $message }}</div> @enderror
+    </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" required autocomplete="new-password" />
+      @error('password') <div class="error">{{ $message }}</div> @enderror
+    </div>
 
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
+    <div class="form-group">
+      <label for="password_confirmation">Konfirmasi Password</label>
+      <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" />
+      @error('password_confirmation') <div class="error">{{ $message }}</div> @enderror
+    </div>
 
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
+    <button type="submit" class="btn btn-primary">Daftar</button>
+    <a href="{{ route('login') }}" class="btn btn-secondary">Sudah punya akun? Masuk</a>
+  </form>
+</div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+</body>
+</html>

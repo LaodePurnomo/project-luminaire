@@ -50,7 +50,7 @@
         {{ strtoupper(substr(auth()->user()->username ?? auth()->user()->name, 0, 1)) }}
       </div>
       <div>
-        <div class="ua-name">{{ auth()->user()->username ?? auth()->user()->name }}</div>
+        <div class="ua-name">{{ Str::limit(auth()->user()->name ?? auth()->user()->username, 15, '...') }}</div>
         <div class="ua-sub">Lihat profil</div>
       </div>
     </a>

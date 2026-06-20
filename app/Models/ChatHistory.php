@@ -11,5 +11,19 @@ class ChatHistory extends Model
         'character',
         'role',
         'content',
+        'is_flagged',
+        'flag_reason',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_flagged' => 'boolean',
+        ];
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
