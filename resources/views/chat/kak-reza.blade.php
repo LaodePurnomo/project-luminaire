@@ -65,8 +65,8 @@
 </main>
 
 <script>
-  const SEND_URL  = "/chat/kak-reza/send";
-  const RESET_URL = "/chat/kak-reza/reset";
+  const SEND_URL  = "{{ route('chat.reza.send') }}";
+  const RESET_URL = "{{ route('chat.reza.reset') }}";
   const CSRF      = document.querySelector('meta[name="csrf-token"]').content;
   let isTyping    = false;
 
@@ -109,9 +109,6 @@
     const el = document.getElementById('typing-row');
     if (el) el.remove();
   }
-
-  console.log("SEND_URL:", SEND_URL);
-  console.log("RESET_URL:", RESET_URL);
 
   async function sendMessage() {
     const input = document.getElementById('chat-input');
