@@ -361,7 +361,8 @@ Jawab maksimal 3-4 kalimat, singkat dan natural.";
             ->map(fn($h) => ['role' => $h->role, 'content' => $h->content])
             ->toArray();
 
-        $systemPrompt = $character->personality . "\nNama user yang sedang kamu ajak bicara adalah {$user->username}.";
+        $name = $user->username ?? $user->name;
+        $systemPrompt = $character->personality . "\nNama user yang sedang kamu ajak bicara adalah {$name}.";
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . config('services.groq.key'),
